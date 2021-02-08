@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@1natsu/wait-element@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@1natsu/wait-element/-/wait-element-2.2.0.tgz#7246d066023b10d8f594b7775146abbe4550f674"
+  integrity sha512-ZqBzLR9204eNYD7C51vLvn7pApG8q/Ql3Q1K/z4Nd5aXf/cpbI0djHHBRLxwIKMXyYoLPDVJwg8jfWaCOxNtIA==
+  dependencies:
+    p-cancelable "^0.4.0"
+
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13":
   version "7.12.13"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.12.13.tgz#dcfc826beef65e75c50e21d3837d7d95798dd658"
@@ -3559,6 +3566,11 @@ os-browserify@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/os-browserify/-/os-browserify-0.3.0.tgz#854373c7f5c2315914fc9bfc6bd8238fdda1ec27"
   integrity sha1-hUNzx/XCMVkU/Jv8a9gjj92h7Cc=
+
+p-cancelable@^0.4.0:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/p-cancelable/-/p-cancelable-0.4.1.tgz#35f363d67d52081c8d9585e37bcceb7e0bbcb2a0"
+  integrity sha512-HNa1A8LvB1kie7cERyy21VNeHb2CWJJYqyyC2o3klWFfMGlFmWv2Z7sFgZH8ZiaYL95ydToKTFVXgMV/Os0bBQ==
 
 pako@^0.2.5:
   version "0.2.9"
