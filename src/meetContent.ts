@@ -1,26 +1,20 @@
 import { browser } from "webextension-polyfill-ts"
 import { observeComment } from './observeComment'
 
-console.log('content script', browser);
-
-
+console.log('content script start');
 
 /**
- * 
+ * popupのreadyを待ってから処理実行する
  */
 browser.runtime.onMessage.addListener((message, sender) => {
-  console.log('meetcon', message);
+  console.log('content script received message', message);
   if (message.fromPopup === 'launched') {
-    console.log('whoaa,');
-    var port = browser.runtime.connect();
-    port.postMessage({ joke: "Knock knock" });
-    port.onMessage.addListener(function (msg) {
-      if (msg.question == "Who's there?")
-        port.postMessage({ answer: "Madame" });
-      else if (msg.question == "Madame who?")
-        port.postMessage({ answer: "Madame... Bovary" });
-    });
+    const port = browser.runtime.connect();
 
-    return Promise.resolve().then(observeComment)
+    const onHandleObserve = (comments: any) => {
+      port.postMessage({ newMeetComment: comments });
+    }
+
+    return Promise.resolve().then(() => observeComment(onHandleObserve))
   }
 })

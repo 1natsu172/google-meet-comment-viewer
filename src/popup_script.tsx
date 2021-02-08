@@ -1,4 +1,10 @@
-import React, { Fragment, useCallback, useEffect, useState } from 'react'
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import ReactDOM from 'react-dom'
 import { browser, Runtime } from 'webextension-polyfill-ts'
 
@@ -10,21 +16,24 @@ type Comment = {
 
 function App() {
   const [comments, setComments] = useState<Comment[]>([])
+  const portRef = useRef<Runtime.Port>()
 
-  const messageHandler = useCallback(
-    (message, sender: Runtime.MessageSender) => {
-      console.log('sender', sender)
-      if (message.fromMeet) {
-        setComments((prev) => [...prev, message.fromMeet])
-      }
-      return Promise.resolve()
-    },
-    [],
-  )
+  const handleNewMeetComment = useCallback((message, port: Runtime.Port) => {
+    console.log('message', message, 'port', port)
+    if (message.newMeetComment) {
+      setComments(message.newMeetComment)
+    }
+    return Promise.resolve()
+  }, [])
   useEffect(() => {
-    browser.runtime.onMessage.addListener(messageHandler)
+    const handleOnConnectPort = (port: Runtime.Port) => {
+      portRef.current = port
+      portRef.current.onMessage.addListener(handleNewMeetComment)
+    }
+    browser.runtime.onConnect.addListener(handleOnConnectPort)
     return () => {
-      browser.runtime.onMessage.removeListener(messageHandler)
+      browser.runtime.onMessage.removeListener(handleOnConnectPort)
+      portRef.current?.onMessage.removeListener(handleNewMeetComment)
     }
   }, [])
   return (
@@ -47,22 +56,16 @@ ReactDOM.render(<App />, mountNode)
 
 let popupLaunchedTabId: number
 
-console.log('popup launched')
+/**
+ * popupのdomContentLoadedまで完了したら、background scriptとデータのやりとりする
+ */
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('domcon')
+  console.log('popup launched')
 
-  browser.runtime.onConnect.addListener(function (port) {
-    console.assert(port.name == 'knockknock')
-    port.onMessage.addListener(function (msg) {
-      if (msg.joke == 'Knock knock')
-        port.postMessage({ question: "Who's there?" })
-      else if (msg.answer == 'Madame')
-        port.postMessage({ question: 'Madame who?' })
-      else if (msg.answer == 'Madame... Bovary')
-        port.postMessage({ question: "I don't get it." })
-    })
-  })
-
+  /**
+   * 1. まずbackgroundにpopup起きたことを伝えて、それを元にbackgroundからpopup起動時のtabIdをもらう
+   * 2. もらったtabId(content script)にpopupが起きたことを伝える
+   */
   browser.runtime
     .sendMessage({ fromPopup: 'launched' })
     .then(({ tabId }) => {
@@ -76,44 +79,3 @@ document.addEventListener('DOMContentLoaded', () => {
       })
     })
 })
-
-// document.getElementById('test').addEventListener('click', () => {
-//   console.log('Popup DOM fully loaded and parsed')
-
-//   function modifyDOM() {
-//     //You can play with your DOM here or check URL against your regex
-//     console.log('Tab script:')
-//     console.log(document.body)
-//     return document.querySelector('body')
-//   }
-//   //We have permission to access the activeTab, so we can call chrome.tabs.executeScript:
-//   // browser.scripting.executeScript(
-//   //   popupLaunchedTabId,
-//   //   {
-//   //     // code: '(' + modifyDOM + ')();', //argument here is a string but function.toString() returns function's code
-//   //     function: foo,
-//   //   },
-//   //   // (results) => {
-//   //   //   //Here we have just the innerHTML and not DOM structure
-//   //   //   console.log('Popup script:')
-//   //   //   console.log(results[0])
-//   //   // },
-//   // )
-//   function showAlert() {
-//     console.log('nyan')
-
-//     alert('test!')
-//   }
-
-//   chrome.scripting.executeScript(
-//     {
-//       target: { tabId: popupLaunchedTabId },
-//       function: modifyDOM,
-//     },
-//     (results) => {
-//       //Here we have just the innerHTML and not DOM structure
-//       console.log('Popup script:')
-//       console.log(JSON.stringify(results[0]))
-//     },
-//   )
-// })
