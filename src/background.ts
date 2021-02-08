@@ -1,6 +1,7 @@
 import { browser } from 'webextension-polyfill-ts'
 
 let tabId: number
+let windowId: number
 
 // @ts-ignore
 (browser.action as typeof browser.browserAction).onClicked.addListener(async (tab) => {
@@ -16,9 +17,21 @@ let tabId: number
     type: "popup",
     tabId: tab.id,
     width: 360,
+  }).then((window) => {
+    windowId = window.id!
   }).catch(error => {
     console.error(error);
   });
+
+  browser.windows.onRemoved.addListener(removedWindowId => {
+    if (windowId === removedWindowId) {
+      browser.tabs.sendMessage(tabId, {
+        fromBackground: {
+          extensionState: 'popupWindowRemoved'
+        }
+      })
+    }
+  })
 });
 
 /**

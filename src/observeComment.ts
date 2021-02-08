@@ -73,5 +73,7 @@ export async function observeComment(onObserveHandler: (...args: unknown[]) => u
   const target = await waitSideBar() as Node
   console.log(target, 'target ready');
 
-  return new MutationObserver(mutationCallback(target, onObserveHandler)).observe(target, observeConfig)
+  const observer = new MutationObserver(mutationCallback(target, onObserveHandler))
+  observer.observe(target, observeConfig)
+  return observer
 }
