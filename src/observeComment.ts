@@ -22,25 +22,28 @@ const mutationCallback = (
     // console.log(mutation);
 
     /**
-     * コメントの親node
+     * コメント欄の親node
      */
     const targetClassList = commentParentNode as HTMLElement
 
     /**
-     * 各コメントのnodes
+     * 時系列順に並んだコメント発言者別のコメントのnodes
      */
     const childNodes = [...targetClassList.childNodes]
     if (!childNodes.length) {
       return
     }
 
-    /**`
+    /**
      * Node掘って欲しい情報パースする
      */
     const comments = childNodes.map(node => {
       const { senderName } = (node as HTMLElement).dataset
       const { formattedTimestamp } = (node as HTMLElement).dataset
-      const comment = (node as HTMLElement).childNodes[1].textContent // 子エレメント掘った先のtextContentがコメント文
+      // 同一時刻(1分内)の発言は1つのnodeに押し込められているので、各発言ごとに配列でパースする
+      const commentTextNodes = [...(node as HTMLElement).childNodes[1]?.childNodes]
+      const comment = commentTextNodes.map(node => node.textContent).filter((text): text is string => typeof text === 'string')
+
       return {
         formattedTimestamp,
         senderName,

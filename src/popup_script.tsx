@@ -11,7 +11,7 @@ import { browser, Runtime } from 'webextension-polyfill-ts'
 type Comment = {
   senderName: string
   formattedTimestamp: string
-  comment: string
+  comment: string[]
 }
 
 function App() {
@@ -36,15 +36,19 @@ function App() {
       portRef.current?.onMessage.removeListener(handleNewMeetComment)
     }
   }, [])
+
   return (
     <div>
-      <h1>Options</h1>
-      <button id="test">TEST!</button>
+      <h1>Comments</h1>
       {comments.map((comment, index) => (
         <Fragment key={index}>
           <div>{comment.senderName}</div>
-          <div>{comment.comment}</div>
           <div>{comment.formattedTimestamp}</div>
+          {comment.comment.map((text, index) => (
+            <Fragment key={index}>
+              <div>{text}</div>
+            </Fragment>
+          ))}
         </Fragment>
       ))}
     </div>
