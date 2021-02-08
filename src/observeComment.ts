@@ -2,7 +2,7 @@ import waitElement from '@1natsu/wait-element'
 import debounce from 'lodash.debounce'
 
 async function waitSideBar() {
-  return await waitElement('*[jsname="xySENc"]')
+  return await waitElement('*[jsname="xySENc"]') // 今のビルドだとコメント欄の親Nodeのアトリビュートにこれが生えてる
 }
 
 const observeConfig: MutationObserverInit = {
