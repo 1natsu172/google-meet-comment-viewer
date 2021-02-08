@@ -1,4 +1,5 @@
 import waitElement from '@1natsu/wait-element'
+import debounce from 'lodash.debounce'
 
 async function waitSideBar() {
   return await waitElement('*[jsname="xySENc"]')
@@ -18,7 +19,7 @@ const mutationCallback = (
   commentParentNode: Node,
   onObserveHandler: (...args: unknown[]) => unknown,
 ): MutationCallback => mutations => {
-  mutations.forEach(mutation => {
+  mutations.forEach(debounce(mutation => {
     // console.log(mutation);
 
     /**
@@ -57,7 +58,11 @@ const mutationCallback = (
     if (comments.length) {
       onObserveHandler(comments)
     }
-  })
+  }, 500, {
+    leading: false,
+    trailing: true,
+    maxWait: 2000
+  }))
 }
 
 
