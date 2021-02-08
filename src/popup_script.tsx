@@ -19,7 +19,7 @@ function App() {
   const portRef = useRef<Runtime.Port>()
 
   const handleNewMeetComment = useCallback((message, port: Runtime.Port) => {
-    console.log('message', message, 'port', port)
+    // console.log('message', message, 'port', port)
     if (message.newMeetComment) {
       setComments(message.newMeetComment)
     }
@@ -38,20 +38,24 @@ function App() {
   }, [])
 
   return (
-    <div>
+    <main>
       <h1>Comments</h1>
       {comments.map((comment, index) => (
-        <Fragment key={index}>
-          <div>{comment.senderName}</div>
-          <div>{comment.formattedTimestamp}</div>
+        <article key={index} style={{ marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '14px', margin: '0 8px 0 0' }}>
+              {comment.senderName}
+            </h2>
+            <time>{comment.formattedTimestamp}</time>
+          </div>
           {comment.comment.map((text, index) => (
-            <Fragment key={index}>
-              <div>{text}</div>
-            </Fragment>
+            <p key={index} style={{ fontSize: '14px' }}>
+              {text}
+            </p>
           ))}
-        </Fragment>
+        </article>
       ))}
-    </div>
+    </main>
   )
 }
 
