@@ -14,7 +14,8 @@ let tabId: number
   await browser.windows.create({
     url: browser.runtime.getURL("popup.html"),
     type: "popup",
-    tabId: tab.id
+    tabId: tab.id,
+    width: 360,
   }).catch(error => {
     console.error(error);
   });
