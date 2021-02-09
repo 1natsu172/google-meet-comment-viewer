@@ -1,11 +1,20 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { browser, Runtime } from 'webextension-polyfill-ts'
+import Linkify, { LinkifyProps } from 'linkifyjs/react'
 
 type Comment = {
   senderName: string
   formattedTimestamp: string
   comment: string[]
+}
+
+const linkifyProps: LinkifyProps = {
+  options: {
+    attributes: {
+      rel: 'noreferrer noopener',
+    },
+  },
 }
 
 function App() {
@@ -44,7 +53,7 @@ function App() {
           </div>
           {comment.comment.map((text, index) => (
             <p key={index} style={{ fontSize: '14px' }}>
-              {text}
+              <Linkify options={linkifyProps.options}>{text}</Linkify>
             </p>
           ))}
         </article>
