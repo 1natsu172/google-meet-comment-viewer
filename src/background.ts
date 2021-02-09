@@ -18,6 +18,7 @@ let windowId: number
     tabId: tab.id,
     width: 360,
   }).then((window) => {
+    // console.log('created window is ', window);
     windowId = window.id!
   }).catch(error => {
     console.error(error);
