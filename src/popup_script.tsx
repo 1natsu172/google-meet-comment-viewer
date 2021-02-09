@@ -35,7 +35,7 @@ function App() {
     }
     browser.runtime.onConnect.addListener(handleOnConnectPort)
     return () => {
-      browser.runtime.onMessage.removeListener(handleOnConnectPort)
+      browser.runtime.onConnect.removeListener(handleOnConnectPort)
       portRef.current?.onMessage.removeListener(handleNewMeetComment)
     }
   }, [])
@@ -66,6 +66,7 @@ const mountNode = document.getElementById('app')
 ReactDOM.render(<App />, mountNode)
 
 let popupLaunchedTabId: number
+let thisPopupTabId: number
 
 /**
  * popupのdomContentLoadedまで完了したら、background scriptとデータのやりとりする
@@ -77,16 +78,27 @@ document.addEventListener('DOMContentLoaded', () => {
    * 1. まずbackgroundにpopup起きたことを伝えて、それを元にbackgroundからpopup起動時のtabIdをもらう
    * 2. もらったtabId(content script)にpopupが起きたことを伝える
    */
-  browser.runtime
-    .sendMessage({ fromPopup: 'launched' })
-    .then(({ tabId }) => {
-      console.log('tabid is ', tabId)
-      popupLaunchedTabId = tabId
+  browser.tabs
+    .getCurrent()
+    .then((tab) => {
+      thisPopupTabId = tab.id!
+      return tab
     })
     .then(() => {
-      browser.tabs.sendMessage(popupLaunchedTabId, {
-        tabId: popupLaunchedTabId,
-        fromPopup: 'launched',
-      })
+      browser.runtime
+        .sendMessage({
+          fromPopup: 'launched',
+          tabIdOfPopupWindow: thisPopupTabId,
+        })
+        .then(({ tabId }) => {
+          console.log('tabid is ', tabId)
+          popupLaunchedTabId = tabId
+        })
+        .then(() => {
+          browser.tabs.sendMessage(popupLaunchedTabId, {
+            tabIdOfPopupWindow: thisPopupTabId,
+            fromPopup: 'launched',
+          })
+        })
     })
 })
