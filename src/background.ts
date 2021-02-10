@@ -1,73 +1,47 @@
-import { browser, Runtime } from 'webextension-polyfill-ts'
+import { browser } from 'webextension-polyfill-ts'
 
-const tabsPort: { [toConnectTabId: string]: Runtime.Port } = {}
-const tabIdMap: {
-  [meetTabId: string]: {
-    contentScriptTabId: number
-    popupWindowTabId: number
-  }
-} = {}
-
-let tempMeetTabId: number
+let tabId: number
+let windowId: number
 
 // @ts-ignore
 (browser.action as typeof browser.browserAction).onClicked.addListener(async (tab) => {
   console.log('user action tabId: ', tab.id);
-  const tabId = tab.id
-  if (!tabId) {
+  if (!tab.id) {
     return
   }
 
-  tabIdMap[tabId] = { contentScriptTabId: tabId, popupWindowTabId: 0 }
-  tempMeetTabId = tabId
-
+  tabId = tab.id
 
   await browser.windows.create({
     url: browser.runtime.getURL("popup.html"),
     type: "popup",
+    tabId: tab.id,
     width: 360,
   }).then((window) => {
     // console.log('created window is ', window);
-    tabIdMap[tabId] = { ...tabIdMap[tabId], popupWindowTabId: window.tabs![0].id! }
-    console.log(`tabIdMap[${tab.id}]`, tabIdMap[tabId]);
+    windowId = window.id!
   }).catch(error => {
     console.error(error);
   });
 
-
-  browser.tabs.onRemoved.addListener(removedTabId => {
-    const { popupWindowTabId, contentScriptTabId } = tabIdMap[tabId]
-    if (popupWindowTabId === removedTabId) {
-      browser.tabs.sendMessage(contentScriptTabId, {
+  browser.windows.onRemoved.addListener(removedWindowId => {
+    if (windowId === removedWindowId) {
+      browser.tabs.sendMessage(tabId, {
         fromBackground: {
           extensionState: 'popupWindowRemoved'
         }
       })
-      tabsPort[removedTabId]?.disconnect()
     }
   })
 });
 
+/**
+ * 外部ウィンドウのpopupの起動を待ってから、popupにtabIdを渡す
+ */
 browser.runtime.onMessage.addListener((message, sender) => {
   console.log('sender', sender);
 
-  /**
-   * 外部ウィンドウのpopupの起動を待ってから、popupにpopup起動時のmeetのtabIdを渡す
-   */
-  if (message.fromPopup === 'launched' && message.tabIdOfPopupWindow) {
-    const { tabIdOfPopupWindow } = message
-    // popupとの接続を確立しておく
-    const port = browser.tabs.connect(tabIdOfPopupWindow)
-    // port保存しておく
-    tabsPort[tabIdOfPopupWindow] = port
-    return Promise.resolve({ tabId: tabIdMap[tempMeetTabId].contentScriptTabId })
-  }
-
-  /**
-   * cmeetContentからコメント飛んできたら
-   */
-  if (message.fromMeetContent.toTabId && message.fromMeetContent.newMeetComment) {
-    const { toTabId, newMeetComment } = message.fromMeetContent
-    tabsPort[toTabId]?.postMessage({ newMeetComment });
+  if (message.fromPopup === 'launched') {
+    return Promise.resolve({ tabId: tabId })
   }
 })
