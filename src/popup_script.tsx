@@ -20,6 +20,7 @@ const linkifyProps: LinkifyProps = {
 function App() {
   const [comments, setComments] = useState<Comment[]>([])
   const portRef = useRef<Runtime.Port>()
+  const bottomDomRef = useRef<HTMLDivElement>(null)
 
   const handleNewMeetComment = useCallback((message, port: Runtime.Port) => {
     // console.log('message', message, 'port', port)
@@ -40,6 +41,11 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    // コメント更新されたらbottomにauto scrollする
+    bottomDomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [comments])
+
   return (
     <main>
       <h1>Comments</h1>
@@ -58,6 +64,7 @@ function App() {
           ))}
         </article>
       ))}
+      <div ref={bottomDomRef}></div>
     </main>
   )
 }
